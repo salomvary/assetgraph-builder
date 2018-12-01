@@ -1,12 +1,10 @@
 var expect = require('../unexpected-with-plugins');
 var pathModule = require('path');
-var Promise = require('bluebird');
-var rimrafAsync = Promise.promisify(require('rimraf'));
-var fs = Promise.promisifyAll(require('fs'));
+var { promisify } = require('util');
+var rimraf = promisify(require('rimraf'));
+var readFile = promisify(require('fs').readFile);
 var getTemporaryFilePath = require('gettemporaryfilepath');
-var childProcess = Promise.promisifyAll(require('child_process'), {
-  multiArgs: true
-});
+var childProcess = require('child_process');
 
 function run(commandAndArgs) {
   if (typeof commandAndArgs !== 'undefined' && !Array.isArray(commandAndArgs)) {
@@ -26,9 +24,7 @@ function run(commandAndArgs) {
 expect.addAssertion(
   '<string|array> [when] run as a shell command <assertion?>',
   function(expect, subject) {
-    return run(subject).then(function(stdout) {
-      return expect.shift(stdout);
-    });
+    return run(subject).then(stdout => expect.shift(stdout));
   }
 );
 
@@ -66,7 +62,7 @@ describe('buildProduction', function() {
       'run as a shell command'
     );
 
-    const builtIndexHtml = await fs.readFileAsync(
+    const builtIndexHtml = await readFile(
       pathModule.resolve(tmpDir, 'index.html'),
       'utf-8'
     );
@@ -74,7 +70,7 @@ describe('buildProduction', function() {
     try {
       expect(builtIndexHtml, 'to contain', "foo['catch']=123");
     } finally {
-      await rimrafAsync(tmpDir);
+      await rimraf(tmpDir);
     }
   });
 
@@ -103,7 +99,7 @@ describe('buildProduction', function() {
       'run as a shell command'
     );
 
-    const builtIndexHtml = await fs.readFileAsync(
+    const builtIndexHtml = await readFile(
       pathModule.resolve(tmpDir, 'index.html'),
       'utf-8'
     );
@@ -111,7 +107,7 @@ describe('buildProduction', function() {
     try {
       expect(builtIndexHtml, 'to contain', 'foo.catch=123');
     } finally {
-      await rimrafAsync(tmpDir);
+      await rimraf(tmpDir);
       process.chdir(originalDir);
     }
   });
@@ -147,7 +143,7 @@ describe('buildProduction', function() {
       'run as a shell command'
     );
 
-    const builtIndexHtml = await fs.readFileAsync(
+    const builtIndexHtml = await readFile(
       pathModule.resolve(tmpDir, 'index.html'),
       'utf-8'
     );
@@ -155,7 +151,7 @@ describe('buildProduction', function() {
     try {
       expect(builtIndexHtml, 'to contain', "foo['catch']=123");
     } finally {
-      await rimrafAsync(tmpDir);
+      await rimraf(tmpDir);
     }
   });
 });
